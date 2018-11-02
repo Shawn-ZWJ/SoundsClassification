@@ -10,5 +10,5 @@ To run this project, do the following:
 
 
 Assumptions:
-1) Apache mxnet is installed. If not floow the installation instructions here: https://mxnet.incubator.apache.org/install/
+1) **Apache Mxnet** is installed. If not follow the installation instructions here: https://mxnet.incubator.apache.org/install/
 
