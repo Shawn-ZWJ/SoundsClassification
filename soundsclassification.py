@@ -9,10 +9,11 @@ import mxnet as mx
 from mxnet import gluon, nd, autograd
 import zipfile
 from sklearn.preprocessing import LabelEncoder
+from audiodataset import AudioDataset
 
 
-class SoundsClassification(gluon.data.dataset._DownloadedDataset):
-    """Sounds dataset from http://www.openslr.org/resources/1/waves_yesno.tar.gz
+class SoundsClassification(AudioDataset):
+    """Sounds dataset from Sounds classification example
 
     Each sample is an audio clip with a sound from the street .
 
@@ -22,14 +23,14 @@ class SoundsClassification(gluon.data.dataset._DownloadedDataset):
         Path to temp folder for storing data (waves_yesno.tar.gz)
        
     """
-    def __init__(self, url=None, root='.',
+    def __init__(self, url=None, root=str(os.getcwd()),
                  train=True, transform=None):
         
         self._namespace = 'yesno'
         self._url = url # url = 'http://www.openslr.org/resources/1/waves_yesno.tar.gz'
         self._download_dir= "."
         
-        super(SoundsClassification, self).__init__(root, transform)
+        super(SoundsClassification, self).__init__(root = root, transform = transform)
         
 
     def _get_data(self):
@@ -55,25 +56,27 @@ class SoundsClassification(gluon.data.dataset._DownloadedDataset):
                 self._data.append(os.path.join(train_dir,line.split(",")[0]))
                 self._label.append(line.split(",")[1].strip())
         
-        self._data = self._data[1:]
+       
+        temp_data = self._data[1:]
         
         #Label encoding being done
         self._le = LabelEncoder()
         self._label = self._label[1:]
         self._label = np.array(self._le.fit_transform(self._label))
+        self._sr = 22500
+        self._raw_data = []
+        for flnm in temp_data:
+            X1, sample_rate = librosa.load(str(flnm)+".wav", res_type='kaiser_fast')
+            self._raw_data.append(X1)
+
         
-        temp_data = self._data[:]
-        self._preprocess(temp_data)
+        self._preprocess(method='mfcc', sampling_rate = self._sr)
     
-    def _preprocess(self, temp_data):
+
+    def _preprocess(self, method='mfcc', sampling_rate = 22050, n_fcc = 40 ):
         """
             For each file in temp_data, extract mel spectrogram features and populate the _data
         """
-        print("Preprocessing the data...")
-        self._data = []
-        for flnm in temp_data:
-            X1, sample_rate = librosa.load(str(flnm)+".wav", res_type='kaiser_fast')
-            mfccs = np.mean(librosa.feature.mfcc(y=X1, sr=sample_rate, n_mfcc=40).T,axis=0)
-            self._data.append(mfccs)
-        self._data = nd.array(self._data)
-        print("Pre processing done!")
+        print("Pre processing in the Sound class")
+        super(SoundsClassification, self)._preprocess(self._raw_data, method=method, sampling_rate=sampling_rate, n_fcc=n_fcc)
+   
