@@ -1,6 +1,6 @@
 from mxnet.gluon.utils import download
 
-
+import os
 import time
 import numpy as np
 import logging
@@ -37,7 +37,10 @@ def main():
     train(sdclassx, model, trainer, loss, epochs=epochs, batch_size=batch_size)
     tock = time.time()
     print("Training the sound classification for ",epochs," epochs, MLP model took ",(tock-tick)," seconds")
-
+    print("Saving the model in models directory....")
+    model.save_parameters(os.path.join(os.getcwd(),"models","model.params"))
+    print("Saved the model params in the following location:")
+    print(os.path.join(os.getcwd(),"models","model.params"))
 
 
 
